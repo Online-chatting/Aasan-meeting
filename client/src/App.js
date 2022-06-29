@@ -1,19 +1,27 @@
 
 import './App.css';
+
 import io from 'socket.io-client';
 import React, { useState,useEffect } from 'react';
 function App() {
   const [socketio, setSocketio] = useState(null);
+  const [name, setName] = useState('');
   async function connect() {
     if(socketio) return;
     const socket = io('http://localhost:8000');
     setSocketio(socket);
-    socket.emit('new-user-joined', 'Anish');
-    sendBroadcastMessage();
+    console.log(name);
+    socket.emit('new-user-joined', name);
+    sendBroadcastMessage(socket);
   }
-  useEffect(() => {
-    connect();
-  }, [socketio]);
+  function sendVideo(){
+    const video = document.getElementById('local-video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const data = canvas.toDataURL('image/png');
+    socketio.emit('send-video', data);
+  }
   
 navigator.getUserMedia(
   { video: true, audio: true },
@@ -28,16 +36,18 @@ navigator.getUserMedia(
     console.warn(error.message);
   }
  );
- async function sendBroadcastMessage(){
-   socketio.on('user', (name) => {
+ async function sendBroadcastMessage(socket){
+   socket.on('user', (name) => {
      console.log(name); });
     }
-    console.log(socketio);
+    // console.log(socketio);
   return (
     <div className="App">
+      <canvas id="canvas" width="640" height="480"></canvas>
       <video autoPlay muted id="local-video">
       </video>
-      {/* <button onClick={sendName}>Click Me</button> */}
+      <input type="text" onChange={e => setName(e.target.value)} />
+      <button id='join' onClick={connect}>JOIN NOW</button>
     </div>
   );
 }
