@@ -22,7 +22,7 @@ function App() {
     const data = canvas.toDataURL('image/png');
     socketio.emit('send-video', data);
   }
-  
+
 navigator.getUserMedia(
   { video: true, audio: true },
   stream => {
